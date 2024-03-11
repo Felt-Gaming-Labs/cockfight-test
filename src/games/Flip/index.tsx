@@ -1,8 +1,7 @@
 // src/games/Flip/index.tsx
 
-import { Coin, TEXTURE_HEADS, TEXTURE_TAILS } from "./Coin";
+import { Cockfight } from "./Cockfight"; // Updated import
 import { GambaUi, useCurrentToken, useSound } from "gamba-react-ui-v2";
-
 import { Canvas } from "@react-three/fiber";
 import { Effect } from "./Effect";
 import React from "react";
@@ -10,12 +9,14 @@ import { useGamba } from "gamba-react-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
+// Updated SIDES for cockfight
 const SIDES = {
-  heads: [2, 0],
-  tails: [0, 2],
+  white: [2, 0],
+  black: [0, 2],
 };
 
-const SOUND_COIN = "/games/flip/coin.mp3";
+// Update sounds if necessary or keep them if they're still applicable
+const SOUND_COIN = "/games/flip/coin.mp3"; // Consider renaming or changing this sound
 const SOUND_WIN = "/games/flip/win.mp3";
 const SOUND_LOSE = "/games/flip/lose.mp3";
 
@@ -27,8 +28,8 @@ function Flip() {
   const gamba = useGamba();
   const [flipping, setFlipping] = React.useState(false);
   const [win, setWin] = React.useState(false);
-  const [resultIndex, setResultIndex] = React.useState(0);
-  const [side, setSide] = React.useState<Side>("heads");
+  const [result, setResult] = React.useState<string>(""); // Updated to handle more outcomes
+  const [side, setSide] = React.useState<Side>("white"); // Default to "white"
 
   const walletModal = useWalletModal();
   const wallet = useWallet();
@@ -55,25 +56,17 @@ function Flip() {
     try {
       setWin(false);
       setFlipping(true);
-
       sounds.play("coin", { playbackRate: 0.5 });
-
       await game.play({
         bet: SIDES[side],
         wager,
         metadata: [side],
       });
-
       sounds.play("coin");
-
-      const result = await gamba.result();
-
-      const win = result.payout > 0;
-
-      setResultIndex(result.resultIndex);
-
+      const gameResult = await gamba.result();
+      const win = gameResult.payout > 0;
+      setResult(win ? `${side}Win` : `${side}Loss`); // Construct result string
       setWin(win);
-
       if (win) {
         sounds.play("win");
       } else {
@@ -97,54 +90,31 @@ function Flip() {
           }}
         >
           <React.Suspense fallback={null}>
-            <Coin result={resultIndex} flipping={flipping} />
+            <Cockfight result={result} flipping={flipping} /> {/* Updated component usage */}
           </React.Suspense>
           <Effect color="white" />
-
           {flipping && <Effect color="white" />}
           {win && <Effect color="#42ff78" />}
           <ambientLight intensity={3} />
-          <directionalLight
-            position-z={1}
-            position-y={1}
-            castShadow
-            color="#CCCCCC"
-          />
-          <hemisphereLight
-            intensity={0.5}
-            position={[0, 1, 0]}
-            scale={[1, 1, 1]}
-            color="#ffadad"
-            groundColor="#6666fe"
-          />
+          <directionalLight position-z={1} position-y={1} castShadow color="#CCCCCC" />
+          <hemisphereLight intensity={0.5} position={[0, 1, 0]} scale={[1, 1, 1]} color="#ffadad" groundColor="#6666fe" />
         </Canvas>
       </GambaUi.Portal>
       <GambaUi.Portal target="controls">
-        <GambaUi.WagerSelect
-          options={WAGER_OPTIONS}
-          value={wager}
-          onChange={setWager}
-        />
+        <GambaUi.WagerSelect options={WAGER_OPTIONS} value={wager} onChange={setWager} />
         <GambaUi.Button
           disabled={gamba.isPlaying}
-          onClick={() => setSide(side === "heads" ? "tails" : "heads")}
+          onClick={() => setSide(side === "white" ? "black" : "white")}
         >
-          <div style={{ display: "flex" }}>
-            <img
-              width={32}
-              src={side === "heads" ? TEXTURE_HEADS : TEXTURE_TAILS}
-            />
-            <div className="flex justify-center items-center">
-              {side === "heads" ? "Heads" : "Tails"}
-            </div>
+          {/* Updated button to toggle between white and black roosters */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            Choose {side === "white" ? "Black" : "White"} Rooster
           </div>
         </GambaUi.Button>
         {wallet.connected ? (
-          <GambaUi.PlayButton onClick={play}>Flip</GambaUi.PlayButton>
+          <GambaUi.PlayButton onClick={play}>Fight!</GambaUi.PlayButton> // Updated button text
         ) : (
-          <GambaUi.Button main onClick={connect}>
-            Play
-          </GambaUi.Button>
+          <GambaUi.Button main onClick={connect}>Play</GambaUi.Button>
         )}
       </GambaUi.Portal>
     </>

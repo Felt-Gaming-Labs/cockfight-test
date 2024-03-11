@@ -6,7 +6,6 @@ import { CellButton, Container, Grid } from "./keno.styles";
 import { GambaUi, useSound, useWagerInput } from "gamba-react-ui-v2";
 import React, { useEffect, useState } from "react";
 
-import useCustomPlay from "@/hooks/useCustomPlay";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
@@ -21,14 +20,12 @@ export default function Keno() {
   const [revealedBlocks, setRevealedBlocks] = useState(new Set());
   const [gameWon, setGameWon] = useState<boolean | null>(null);
   const game = GambaUi.useGame();
-  const gambaBPlay = useCustomPlay("Keno");
   const walletModal = useWalletModal();
   const wallet = useWallet();
   const sounds = useSound({
     reveal: "/games/keno/reveal.mp3",
     win: "/games/keno/win.mp3",
     lose: "/games/keno/lose.mp3",
-    ping: "/games/keno/ping.mp3",
   });
 
   const connect = () => {
@@ -44,7 +41,6 @@ export default function Keno() {
       setSelectedNumbers(selectedNumbers.filter((n) => n !== number));
     } else if (selectedNumbers.length < MAX_SELECTION) {
       setSelectedNumbers([...selectedNumbers, number]);
-      sounds.play("ping");
     }
   };
 
@@ -60,7 +56,11 @@ export default function Keno() {
     setGameWon(null);
     setIsPlaying(true);
     try {
-      await gambaBPlay(wager, generateBetArray(selectedNumbers.length));
+      await game.play({
+        wager,
+        bet: generateBetArray(selectedNumbers.length),
+        metadata: ["Bankkmatic Games (https://x.com/bankkroll_eth)"],
+      });
 
       const gameResult = await game.result();
       const win = gameResult.payout > 0;
@@ -197,27 +197,6 @@ export default function Keno() {
                 : null}
           </p>
         </GambaUi.Responsive>
-        <div
-          style={{
-            position: "absolute",
-            bottom: "4px",
-            right: "4px",
-            zIndex: 1000,
-          }}
-        >
-          <a
-            href="https://x.com/bankkroll_eth"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontSize: "14px",
-              color: "#fff",
-              padding: "10px",
-            }}
-          >
-            BankmaticGames
-          </a>
-        </div>
       </GambaUi.Portal>
       <GambaUi.Portal target="controls">
         <GambaUi.WagerInput value={wager} onChange={setWager} />
