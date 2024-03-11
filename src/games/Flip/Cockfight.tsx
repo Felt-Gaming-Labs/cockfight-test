@@ -1,10 +1,8 @@
 // src/games/Flip/Cockfight.tsx
 
-import React, { useEffect, useRef } from "react";
-import { TextureLoader } from "three";
-import { useLoader, useFrame } from "@react-three/fiber";
+import React from 'react';
 
-// Define the paths to your rooster images and outcome gifs
+// Define paths to your images and gifs
 const TEXTURE_WHITE_ROOSTER = "/images/whitecock.png";
 const TEXTURE_BLACK_ROOSTER = "/images/blackcock.png";
 const WIN_WHITE_ROOSTER_GIF = "/images/whitecockwins.gif";
@@ -12,67 +10,39 @@ const LOSS_WHITE_ROOSTER_GIF = "/images/whitecockloss.gif";
 const WIN_BLACK_ROOSTER_GIF = "/images/blackcockwins.gif";
 const LOSS_BLACK_ROOSTER_GIF = "/images/blackcockloss.gif";
 
-// This component will decide which texture to show based on the game's state
-function RoosterTextures({ result, flipping }: { result: string; flipping: boolean }) {
-  // Load textures for static images and outcome gifs
-  const [whiteRooster, blackRooster, whiteWin, whiteLoss, blackWin, blackLoss] = useLoader(TextureLoader, [
-    TEXTURE_WHITE_ROOSTER,
-    TEXTURE_BLACK_ROOSTER,
-    WIN_WHITE_ROOSTER_GIF,
-    LOSS_WHITE_ROOSTER_GIF,
-    WIN_BLACK_ROOSTER_GIF,
-    LOSS_BLACK_ROOSTER_GIF,
-  ]);
+interface CockfightProps {
+  result: string; // This will determine which image or gif to show
+}
 
-  // Decide which texture to use
-  let texture;
-  switch(result) {
+export const Cockfight: React.FC<CockfightProps> = ({ result }) => {
+  // Decide which image or gif to display based on the result
+  let imagePath = "";
+  switch (result) {
     case "whiteWin":
-      texture = whiteWin;
+      imagePath = WIN_WHITE_ROOSTER_GIF;
       break;
     case "whiteLoss":
-      texture = whiteLoss;
+      imagePath = LOSS_WHITE_ROOSTER_GIF;
       break;
     case "blackWin":
-      texture = blackWin;
+      imagePath = WIN_BLACK_ROOSTER_GIF;
       break;
     case "blackLoss":
-      texture = blackLoss;
+      imagePath = LOSS_BLACK_ROOSTER_GIF;
       break;
     case "white":
-      texture = whiteRooster;
+      imagePath = TEXTURE_WHITE_ROOSTER;
       break;
     case "black":
-    default:
-      texture = blackRooster;
+      imagePath = TEXTURE_BLACK_ROOSTER;
       break;
+    default:
+      imagePath = TEXTURE_WHITE_ROOSTER; // Default or a placeholder image
   }
 
   return (
-    <mesh>
-      <planeGeometry args={[1.3, 1.3]} />
-      <meshStandardMaterial map={texture} />
-    </mesh>
+    <div style={{ textAlign: 'center' }}>
+      <img src={imagePath} alt="Cockfight Result" style={{ maxWidth: '100%', height: 'auto' }} />
+    </div>
   );
-}
-
-interface CockfightProps {
-  flipping: boolean;
-  result: string; // Updated to use string type for more outcomes
-}
-
-export function Cockfight({ flipping, result }: CockfightProps) {
-  const group = useRef<Group | null>(null);
-
-  // Use `useFrame` to add some flipping animation if you want
-  useFrame((state, dt) => {
-    // Animation logic here if desired
-    // For simplicity, this example will not include complex flipping logic
-  });
-
-  return (
-    <group ref={group}>
-      <RoosterTextures result={result} flipping={flipping} />
-    </group>
-  );
-}
+};
